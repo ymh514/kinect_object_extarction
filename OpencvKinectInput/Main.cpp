@@ -48,28 +48,6 @@ int main()
 
 	inputColor.copyTo(showContours,showContours);
 	imshow("segment result",showContours);
-
-	
-
-
-	//fill dark place => inpaint
-	/*imshow("before inpaint ",inputDepth);
-	const unsigned char noDepth = 0;
-	Mat temp,temp2;
-	Mat smallSizeDepth;
-	resize(inputDepth,smallSizeDepth,Size(),0.2,0.2);
-	inpaint(smallSizeDepth,(smallSizeDepth==noDepth),temp,5.0,INPAINT_TELEA);
-	resize(temp,temp2,inputDepth.size());
-	temp2.copyTo(inputDepth,(inputDepth==noDepth));
-
-	imshow("after inpaint ",inputDepth);*/
-
-
-	// for mor smooth 
-	/*GaussianBlur(inputDepth,inputDepth,Size(5,5),2,0);
-	Mat element = getStructuringElement(MORPH_CROSS,Size(5,5),Point(1,1));
-	erode(inputDepth,inputDepth,element);
-	dilate(inputDepth,inputDepth,element);*/
 	
 	waitKey(0);
 	return 0;
