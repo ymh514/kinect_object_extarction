@@ -13,8 +13,8 @@
 using namespace std;
 using namespace cv;
 
-//void withoutMeanShitSRM(Mat inputColor,Mat output);
-//void withMeanShitSRM(Mat inputColor,Mat output);
+//void withoutMeanShitSRM(Mat inputColor,Mat colorSegment);
+//void withMeanShitSRM(Mat inputColor,Mat colorSegment);
 
 static int interstX;
 static int interstY;
@@ -30,15 +30,15 @@ void CallBackFunc(int event, int x, int y, int flags, void* userdata)
          cout << "Left button of the mouse is clicked - position (" << x << ", " << y << ")" << endl;
      }
 }
-void withoutMeanShitSRM(Mat inputColor,Mat output){
+void withoutMeanShitSRM(Mat inputColor,Mat colorSegment){
 
-	DoSRM(100,inputColor.cols,inputColor.rows,inputColor.channels(),inputColor.data,output.data,0);
+	DoSRM(100,inputColor.cols,inputColor.rows,inputColor.channels(),inputColor.data,colorSegment.data,0);
 
-	imshow("After SRM without mean shift",output);
+	imshow("After SRM without mean shift",colorSegment);
 
 
 }
-void withMeanShitSRM(Mat inputColor,Mat output){
+void withMeanShitSRM(Mat inputColor,Mat colorSegment){
 	
 	//Cpu Meanshift
 	cvtColor(inputColor,inputColor,CV_BGR2Lab);
@@ -47,9 +47,9 @@ void withMeanShitSRM(Mat inputColor,Mat output){
 
 	//imshow("After mean shift",inputColor);
 
-	DoSRM(100,inputColor.cols,inputColor.rows,inputColor.channels(),inputColor.data,output.data,0);
+	DoSRM(100,inputColor.cols,inputColor.rows,inputColor.channels(),inputColor.data,colorSegment.data,0);
 
-	imshow("After SRM with mean shift",output);
+	imshow("After SRM with mean shift",colorSegment);
 	
 }
 int main()
@@ -61,10 +61,12 @@ int main()
 	Mat inputDepth = imread("F:\\KinectDataset\\New\\2red\\depth3.jpg",CV_LOAD_IMAGE_GRAYSCALE);// 1 chanell input
 	//DoSRM(20000,inputDepth.cols,inputDepth.rows,inputDepth.channels(),inputDepth.data,inputDepth.data,0);
 
-	Mat output = inputColor.clone();
+	Mat colorSegment = inputColor.clone();
 	Mat colorMask = Mat(inputColor.size(),CV_8UC1,Scalar(0,0,0));
 	Mat depthSegment = inputDepth.clone();
 	Mat depthMask = Mat(inputDepth.size(),CV_8UC1,Scalar(0,0,0));
+
+	Mat combineMask = Mat(inputColor.size(),CV_8UC1,Scalar(0,0,0));
 
 	/*
 		Choose interest position
@@ -72,7 +74,7 @@ int main()
 	namedWindow("Choose interest position", 1);
 	setMouseCallback("Choose interest position", CallBackFunc, NULL);
 
-	imshow("Choose interest position", inputDepth);
+	imshow("Choose interest position", inputColor);
 	waitKey(0);
 	cout<<"x: "<<interstX<<"  y: "<<interstY<<endl;
 	destroyWindow("Choose interest position");
@@ -80,10 +82,10 @@ int main()
 	/*
 		Create show windows
 	*/
-	namedWindow("Color input");
-	namedWindow("Depth input");
-	imshow("Color input",inputColor);
-	imshow("Depth input",inputDepth);
+	//namedWindow("Color input");
+	//namedWindow("Depth input");
+	//imshow("Color input",inputColor);
+	//imshow("Depth input",inputDepth);
 	//namedWindow("After mean shift");
 	//namedWindow("After SRM without mean shift");
 	namedWindow("After SRM with mean shift");
@@ -96,26 +98,26 @@ int main()
 		3. Color Segmentation Mask
 	*/
 
-	//withoutMeanShitSRM(inputColor,output);
-	withMeanShitSRM(inputColor,output);
-	cvtColor(output,output,CV_BGR2GRAY);
+	//withoutMeanShitSRM(inputColor,colorSegment);
+	withMeanShitSRM(colorSegment,colorSegment);
+	cvtColor(colorSegment,colorSegment,CV_BGR2GRAY);
 	double interestPositionColorValue = 0;
 
-	for(int i=0;i<output.rows;i++){
-		for(int j=0;j<output.cols;j++){
+	for(int i=0;i<colorSegment.rows;i++){
+		for(int j=0;j<colorSegment.cols;j++){
 			if(i==interstY && j==interstX){
-				colorIntrestPoint = output.at<uchar>(i,j);
+				colorIntrestPoint = colorSegment.at<uchar>(i,j);
 				interestPositionColorValue = static_cast<int>(colorIntrestPoint);
 				cout<<"Interest Position Color Gray Value : "<<interestPositionColorValue<<endl;
 
 			}
 		}
 	}
-	imshow("wait wait ",output);
+
 	int count = 0;
-	for(int i=0;i<output.rows;i++){
-		for(int j=0;j<output.cols;j++){
-			int tempColorValue = static_cast<int>(output.at<uchar>(i,j));
+	for(int i=0;i<colorSegment.rows;i++){
+		for(int j=0;j<colorSegment.cols;j++){
+			int tempColorValue = static_cast<int>(colorSegment.at<uchar>(i,j));
 			if(interestPositionColorValue == tempColorValue){
 				colorMask.at<uchar>(i,j) = 255;
 				count ++;
@@ -124,7 +126,7 @@ int main()
 	}
 	imshow("color mask",colorMask);
 
-	//adaptiveThreshold(output,colorMask,interestPositionColorValue,ADAPTIVE_THRESH_GAUSSIAN_C,THRESH_BINARY,3,2);
+	//adaptiveThreshold(colorSegment,colorMask,interestPositionColorValue,ADAPTIVE_THRESH_GAUSSIAN_C,THRESH_BINARY,3,2);
 	//imshow("colormask",colorMask);
 	
 
@@ -136,8 +138,8 @@ int main()
 		4. put mask on color image
 	*/
 
-	for(int i=0;i<inputDepth.rows;i++){
-		for(int j=0;j<inputDepth.cols;j++){
+	for(int i=0;i<depthSegment.rows;i++){
+		for(int j=0;j<depthSegment.cols;j++){
 			if(i==interstY && j==interstX){
 				depthIntrestPoint = depthSegment.at<uchar>(i,j);
 				int interestPositionDepthValue = static_cast<int>(depthIntrestPoint);
@@ -171,9 +173,21 @@ int main()
 	}
 	imshow("Depth Mask",depthMask);
 
+	for(int i=0;i<colorMask.rows;i++){
+		for(int j=0;j<colorMask.cols;j++){
+			if(colorMask.at<uchar>(i,j) == 255){
+				if(depthMask.at<uchar>(i,j) == 255){
+					combineMask.at<uchar>(i,j) = 255;
+				}
+			}
 
-	inputColor.copyTo(depthMask,depthMask);
-	imshow("Segmentation result",depthMask);
+		}
+	}
+	imshow("Combine Mask",combineMask);
+
+
+	inputColor.copyTo(combineMask,combineMask);
+	imshow("Segmentation result",combineMask);
 	
 	//Mat canny;
 	//imshow("canny depth",inputDepth);
