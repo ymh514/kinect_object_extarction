@@ -18,8 +18,8 @@ using namespace cv;
 
 static int interstX;
 static int interstY;
-static uchar colorIntrestPoint;
-static uchar depthIntrestPoint;
+static uchar colorInterestPoint;
+static uchar depthInterestPoint;
 
 void CallBackFunc(int event, int x, int y, int flags, void* userdata)
 {
@@ -57,8 +57,8 @@ int main()
 	/*
 		Initial Paremeter
 	*/
-	Mat inputColor = imread("F:\\KinectDataset\\New\\2red\\color3.jpg");
-	Mat inputDepth = imread("F:\\KinectDataset\\New\\2red\\depth3.jpg",CV_LOAD_IMAGE_GRAYSCALE);// 1 chanell input
+	Mat inputColor = imread("F:\\KinectDataset\\New\\2red\\color6.jpg");
+	Mat inputDepth = imread("F:\\KinectDataset\\New\\2red\\depth6.jpg",CV_LOAD_IMAGE_GRAYSCALE);// 1 chanell input
 	//DoSRM(20000,inputDepth.cols,inputDepth.rows,inputDepth.channels(),inputDepth.data,inputDepth.data,0);
 
 	Mat colorSegment = inputColor.clone();
@@ -106,8 +106,8 @@ int main()
 	for(int i=0;i<colorSegment.rows;i++){
 		for(int j=0;j<colorSegment.cols;j++){
 			if(i==interstY && j==interstX){
-				colorIntrestPoint = colorSegment.at<uchar>(i,j);
-				interestPositionColorValue = static_cast<int>(colorIntrestPoint);
+				colorInterestPoint = colorSegment.at<uchar>(i,j);
+				interestPositionColorValue = static_cast<int>(colorInterestPoint);
 				cout<<"Interest Position Color Gray Value : "<<interestPositionColorValue<<endl;
 
 			}
@@ -141,8 +141,8 @@ int main()
 	for(int i=0;i<depthSegment.rows;i++){
 		for(int j=0;j<depthSegment.cols;j++){
 			if(i==interstY && j==interstX){
-				depthIntrestPoint = depthSegment.at<uchar>(i,j);
-				int interestPositionDepthValue = static_cast<int>(depthIntrestPoint);
+				depthInterestPoint = depthSegment.at<uchar>(i,j);
+				int interestPositionDepthValue = static_cast<int>(depthInterestPoint);
 				cout<<"Interest Position Depth Gray Value : "<<interestPositionDepthValue<<endl;
 			}
 		}
@@ -165,7 +165,7 @@ int main()
 	for(int i=0;i<depthSegment.rows;i++){
 		for(int j=0;j<depthSegment.cols;j++){ 
 			int tempDepthValue = static_cast<int>(depthSegment.at<uchar>(i,j));
-			int interestPositionDepthValue = static_cast<int>(depthIntrestPoint);
+			int interestPositionDepthValue = static_cast<int>(depthInterestPoint);
 			if(tempDepthValue >= interestPositionDepthValue-1 && tempDepthValue <= interestPositionDepthValue+1 ){
 				depthMask.at<uchar>(i,j) = 255;
 			}
@@ -187,6 +187,7 @@ int main()
 
 
 	inputColor.copyTo(combineMask,combineMask);
+	imshow("Original Image",inputColor);
 	imshow("Segmentation result",combineMask);
 	
 	//Mat canny;
