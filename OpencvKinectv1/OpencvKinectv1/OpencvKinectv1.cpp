@@ -13,13 +13,15 @@
 using namespace std;
 using namespace cv;
 
-//void withoutMeanShitSRM(Mat inputColor,Mat colorSegment);
-//void withMeanShitSRM(Mat inputColor,Mat colorSegment);
-
+// global parameters
 static int interstX;
 static int interstY;
-static uchar colorInterestPoint;
+
 static uchar depthInterestPoint;
+static int interestR = 0;
+static int interestG = 0;
+static int interestB = 0;
+
 
 void CallBackFunc(int event, int x, int y, int flags, void* userdata)
 {
@@ -59,7 +61,6 @@ int main()
 	*/
 	Mat inputColor = imread("F:\\KinectDataset\\New\\2red\\color6.jpg");
 	Mat inputDepth = imread("F:\\KinectDataset\\New\\2red\\depth6.jpg",CV_LOAD_IMAGE_GRAYSCALE);// 1 chanell input
-	//DoSRM(20000,inputDepth.cols,inputDepth.rows,inputDepth.channels(),inputDepth.data,inputDepth.data,0);
 
 	Mat colorSegment = inputColor.clone();
 	Mat colorMask = Mat(inputColor.size(),CV_8UC1,Scalar(0,0,0));
@@ -82,6 +83,7 @@ int main()
 	/*
 		Create show windows
 	*/
+
 	//namedWindow("Color input");
 	//namedWindow("Depth input");
 	//imshow("Color input",inputColor);
@@ -100,15 +102,20 @@ int main()
 
 	//withoutMeanShitSRM(inputColor,colorSegment);
 	withMeanShitSRM(colorSegment,colorSegment);
-	cvtColor(colorSegment,colorSegment,CV_BGR2GRAY);
+
 	double interestPositionColorValue = 0;
 
 	for(int i=0;i<colorSegment.rows;i++){
 		for(int j=0;j<colorSegment.cols;j++){
 			if(i==interstY && j==interstX){
-				colorInterestPoint = colorSegment.at<uchar>(i,j);
-				interestPositionColorValue = static_cast<int>(colorInterestPoint);
-				cout<<"Interest Position Color Gray Value : "<<interestPositionColorValue<<endl;
+
+				interestR = static_cast<int>(colorSegment.at<Vec3b>(i,j)[0]);
+				interestG = static_cast<int>(colorSegment.at<Vec3b>(i,j)[1]);
+				interestB = static_cast<int>(colorSegment.at<Vec3b>(i,j)[2]);
+
+				cout<<"Interest Position Red :"<<interestR<<endl;
+				cout<<"Interest Position Green :"<<interestG<<endl;
+				cout<<"Interest Position Blue :"<<interestB<<endl;
 
 			}
 		}
@@ -117,18 +124,18 @@ int main()
 	int count = 0;
 	for(int i=0;i<colorSegment.rows;i++){
 		for(int j=0;j<colorSegment.cols;j++){
-			int tempColorValue = static_cast<int>(colorSegment.at<uchar>(i,j));
-			if(interestPositionColorValue == tempColorValue){
+			int tempR = static_cast<int>(colorSegment.at<Vec3b>(i,j)[0]);
+			int tempG = static_cast<int>(colorSegment.at<Vec3b>(i,j)[1]);
+			int tempB = static_cast<int>(colorSegment.at<Vec3b>(i,j)[2]);
+
+			if(tempR == interestR && tempB == interestB && tempG == interestG){
 				colorMask.at<uchar>(i,j) = 255;
 				count ++;
 			}
 		}
 	}
-	imshow("color mask",colorMask);
+	imshow("Color Mask",colorMask);
 
-	//adaptiveThreshold(colorSegment,colorMask,interestPositionColorValue,ADAPTIVE_THRESH_GAUSSIAN_C,THRESH_BINARY,3,2);
-	//imshow("colormask",colorMask);
-	
 
 	/*
 		Depth Segmentation : 
